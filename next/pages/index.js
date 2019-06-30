@@ -27,70 +27,78 @@ const StyledImage = styled(Image)`
 
 const SignInPage = () => (
   <App>
-    <Box full='vertical' justify='center' align='center' pad={ { vertical: 'large' } }>
+    <Box full='vertical' justify='center' align='center' pad={{ vertical: 'large' }}>
       <StyledImage src='/static/logo.png' />
 
       <Headline>Welcome to the <b>TallerChat</b> <ChatIcon size='large' colorIndex='critical' /></Headline>
 
       <SigninContainer>
-        { ({ ...form, handleSubmit, submitting, invalid, values: { register } }) => (
-          <Form pad='medium' onSubmit={ handleSubmit }>
-            <Heading strong tag='h2' align='center'>Sign In</Heading>
+        {({ ...form, handleSubmit, submitting, invalid, values: { register }, children }) => {
+          if (!children.user.uid && !children.refetched) {
+            return <h3>Loading...</h3>
 
-            <fieldset>
-              <FormField label={ labels.name }>
-                <SigninContainer.Username
-                  autoFocus
-                  disabled={ submitting }
-                  component={ TextInput }
-                />
-              </FormField>
+          } else {
+            return (
+              <Form pad='medium' onSubmit={handleSubmit}>
+                <Heading strong tag='h2' align='center'>Sign In</Heading>
 
-              { register && (
-                <FormField label={ labels.email }>
-                  <SigninContainer.Email
-                    disabled={ submitting }
-                    component={ TextInput }
+                <fieldset>
+                  <FormField label={labels.name}>
+                    <SigninContainer.Username
+                      autoFocus
+                      disabled={submitting}
+                      component={TextInput}
+                    />
+                  </FormField>
+
+                  {register && (
+                    <FormField label={labels.email}>
+                      <SigninContainer.Email
+                        disabled={submitting}
+                        component={TextInput}
+                      />
+                    </FormField>
+                  )}
+
+                  <FormField label={labels.password}>
+                    <SigninContainer.Password
+                      disabled={submitting}
+                      component={TextInput}
+                    />
+                  </FormField>
+
+                  {register && (
+                    <FormField label={labels.passwordConfirm}>
+                      <SigninContainer.PasswordConfirm
+                        disabled={submitting}
+                        component={TextInput}
+                      />
+                    </FormField>
+                  )}
+                </fieldset>
+
+                <Box margin={{ bottom: 'medium' }}>
+                  <SigninContainer.Register
+                    label="I'm new here"
+                    disabled={submitting}
+                    component={CheckBox}
                   />
-                </FormField>
-              ) }
+                </Box>
 
-              <FormField label={ labels.password }>
-                <SigninContainer.Password
-                  disabled={ submitting }
-                  component={ TextInput }
-                />
-              </FormField>
+                <Errors {...form} />
 
-              { register && (
-                <FormField label={ labels.passwordConfirm }>
-                  <SigninContainer.PasswordConfirm
-                    disabled={ submitting }
-                    component={ TextInput }
+                <Footer size='small' direction='column' align='center' pad={{ between: 'medium' }}>
+                  <Button fill primary
+                    type='submit'
+                    label={register ? (submitting ? 'Registering...' : 'Register') : (submitting ? 'Logging...' : 'Log In')}
+                    disabled={invalid || submitting}
                   />
-                </FormField>
-              ) }
-            </fieldset>
-
-            <Box margin={ { bottom: 'medium' } }>
-              <SigninContainer.Register
-                label="I'm new here"
-                disabled={ submitting }
-                component={ CheckBox }
-              />
-            </Box>
-
-            <Errors { ...form } />
-
-            <Footer size='small' direction='column' align='center' pad={ { between: 'medium' } }>
-              <Button fill primary
-                type='submit'
-                label={ register ? (submitting ? 'Registering...' : 'Register') : (submitting ? 'Logging...' : 'Log In') }
-                disabled={ invalid || submitting }
-              />
-            </Footer>
-          </Form>
-        ) }
+                </Footer>
+              </Form>
+            )
+            
+          }
+        }}
       </SigninContainer>
     </Box>
   </App>
@@ -112,21 +120,21 @@ const Errors = ({ errors, submitErrors, touched }) => {
 
   return (
     <React.Fragment>
-      { submitErrors && (
-        <ErrorBox colorIndex='critical' pad='small' margin={ { vertical: 'small' } }>
-          { submitErrors }
+      {submitErrors && (
+        <ErrorBox colorIndex='critical' pad='small' margin={{ vertical: 'small' }}>
+          {submitErrors}
         </ErrorBox>
-      ) }
+      )}
 
-      { !!errorMessages.length && (
-        <ErrorBox colorIndex='critical' pad='small' margin={ { vertical: 'small' } }>
+      {!!errorMessages.length && (
+        <ErrorBox colorIndex='critical' pad='small' margin={{ vertical: 'small' }}>
           <ul>
-            { errorMessages.map(([label, error]) => (
-              <li key={ label }>{ label }: <i>{ error }</i></li>
-            )) }
+            {errorMessages.map(([label, error]) => (
+              <li key={label}>{label}: <i>{error}</i></li>
+            ))}
           </ul>
         </ErrorBox>
-      ) }
+      )}
     </React.Fragment>
   )
 }

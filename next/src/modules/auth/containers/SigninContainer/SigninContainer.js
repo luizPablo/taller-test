@@ -8,6 +8,11 @@ import { combine, condition, required, minLength, email, equalsField } from 'app
 
 import { loginMutation, registerMutation } from './mutations'
 
+import gql from 'graphql-tag'
+import { Query } from 'react-apollo'
+
+import { isClient } from 'app/lib/func'
+
 export const labels = {
   name: 'Username',
   email: 'E-mail',
@@ -24,6 +29,16 @@ const validations = {
     [required, equalsField('password', labels.password)],
   )
 }
+
+const query = gql`
+  query CurrentUser {
+    user: currentUserContext {
+      uid
+      name
+      mail
+    }
+  }
+`
 
 /**
  * Grab actual error from GraphQL error.
@@ -45,20 +60,43 @@ const handleSubmit = ({ register, login }) => variables =>
   (variables.register ? register : login)({ variables })
     .then(redirect)
     .catch(normalizeError)
+    
+let refetchedOnClient = false;
 
 const SigninContainer = ({ children }) => (
-  <Mutation mutation={ loginMutation }>
-    { login => (
-      <Mutation mutation={ registerMutation }>
-        { register => (
-          <Form
-            children={ children }
-            onSubmit={ handleSubmit({ register, login }) }
-          />
-        ) }
-      </Mutation>
-    ) }
-  </Mutation>
+  <Query query={query}>
+    {
+      ({ data, loading, refetch }) => {
+
+        if (!loading && !refetchedOnClient && isClient()) {
+          refetch().then(
+            refetchedOnClient = true
+          );
+          
+        } else if (data.user.uid) {
+          Router.push('/channel', '/messages/general')
+          return <h3>Redirect...</h3>
+
+        }
+
+        return (
+          <Mutation mutation={loginMutation}>
+            {login => (
+              <Mutation mutation={registerMutation}>
+                {register => (
+                  <Form
+                    component={children}
+                    children={{ user: data.user, refetched: refetchedOnClient }}
+                    onSubmit={handleSubmit({ register, login })}
+                  />
+                )}
+              </Mutation>
+            )}
+          </Mutation>
+        );
+      }
+    }
+  </Query>
 )
 
 /**
@@ -67,8 +105,8 @@ const SigninContainer = ({ children }) => (
 SigninContainer.Username = props => (
   <Field
     name='name'
-    validate={ validations.name }
-    { ...props }
+    validate={validations.name}
+    {...props}
   />
 )
 
@@ -78,8 +116,8 @@ SigninContainer.Username = props => (
 SigninContainer.Email = props => (
   <Field
     name='email'
-    validate={ validations.email }
-    { ...props }
+    validate={validations.email}
+    {...props}
   />
 )
 
@@ -90,8 +128,8 @@ SigninContainer.Password = props => (
   <Field
     name='password'
     type='password'
-    validate={ validations.password }
-    { ...props }
+    validate={validations.password}
+    {...props}
   />
 )
 
@@ -102,9 +140,9 @@ SigninContainer.PasswordConfirm = props => (
   <Field
     name='passwordConfirm'
     type='password'
-    validate={ validations.passwordConfirm }
-    validateFields={ ['password'] }
-    { ...props }
+    validate={validations.passwordConfirm}
+    validateFields={['password']}
+    {...props}
   />
 )
 
@@ -112,7 +150,7 @@ SigninContainer.PasswordConfirm = props => (
  * Composable register field.
  */
 SigninContainer.Register = props => (
-  <Field name='register' { ...props } />
+  <Field name='register' {...props} />
 )
 
 SigninContainer.propTypes = {

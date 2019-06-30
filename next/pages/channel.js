@@ -29,6 +29,18 @@ import Label from 'grommet/components/Label'
 import bootstrap from 'app/lib/bootstrap'
 import TextInput from 'app/modules/form/components/TextInput'
 
+import gql from 'graphql-tag'
+import { Mutation } from 'react-apollo'
+//import Router from 'next/router'
+
+const logoutMutation = name => gql`
+  mutation{
+    user: userLogout (name: "${name}") {
+      name
+    }
+  }
+`
+
 const StyledRoomHeader = styled(Header)`
   border-bottom: 1px solid #ddd;
 `
@@ -101,7 +113,16 @@ const ChatRoom = ({ url, url: { query: { channel = 'general' } } }) => (
 
                   <Footer pad='medium'>
                     <Button icon={ <UserIcon /> } onClick={ console.log } />
-                    <Button icon={ <LogoutIcon /> } onClick={ console.log } />
+                    
+                    <Mutation 
+                      mutation={logoutMutation(user.name)} 
+                      onCompleted={(data) => {
+                        // Router.push('/') don't work :\
+                        window.location.replace('/');
+                      }}
+                    >  
+                      {logout => <Button icon={ <LogoutIcon /> } onClick={ logout } />}
+                    </Mutation>
                   </Footer>
                 </Sidebar>
 
