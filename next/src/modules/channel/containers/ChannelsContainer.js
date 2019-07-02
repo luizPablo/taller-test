@@ -30,7 +30,7 @@ const normalize = pipe(
 )
 
 const ChannelsContainer = ({ children }) => (
-  <Query query={ query }>
+  <Query ssr={false} query={ query }>
     { pipe(normalize, children) }
   </Query>
 )
